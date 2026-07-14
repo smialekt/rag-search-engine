@@ -13,7 +13,7 @@ DEFAULT_SEARCH_LIMIT = 200
 
 
 class Movie(TypedDict):
-    id: str
+    id: int
     title: str
     description: str
 

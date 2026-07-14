@@ -11,61 +11,63 @@ STOPWORDS = set(load_stopwords())
 class InvertedIndex():
     def __init__(self) -> None:
         self.index: dict[str, set] = defaultdict(set)
-        self.docmap: dict[str, Movie] = {}
+        self.docmap: dict[int, Movie] = {}
+        self.index_path = CACHE_PATH / "index.pkl"
+        self.docmap_path = CACHE_PATH / "docmap.pkl"
 
-    def __add_document(self, doc_id, text):
+    def __add_document(self, doc_id, text) -> None:
         tokenized_text = tokenize_text(text)
         for token in tokenized_text:
             self.index[token].add(doc_id)
 
-    def get_documents(self, term):
+    def get_documents(self, term) -> list[int]:
         return sorted(self.index.get(term, []))
 
-    def build(self):
+    def build(self) -> None:
         movies = load_movies()
         for m in movies:
             self.__add_document(m['id'], f"{m['title']} {m['description']}")
             self.docmap[m['id']] = m
 
-    def save(self):
+    def save(self) -> None:
         CACHE_PATH.mkdir(parents=True, exist_ok=True)
 
-        with open(CACHE_PATH / "index.pkl", "wb") as f:
+        with open(self.index_path, "wb") as f:
             pickle.dump(self.index, f)
 
-        with open(CACHE_PATH / "docmap.pkl", "wb") as f:
+        with open(self.docmap_path, "wb") as f:
             pickle.dump(self.docmap, f)
+
+    def load(self) -> None:
+        with open(CACHE_PATH / "index.pkl", "rb") as f:
+            self.index = pickle.load(f)
+        with open(CACHE_PATH / "docmap.pkl", "rb") as f:
+            self.docmap = pickle.load(f)
 
 
 def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[Movie]:
-    movies = load_movies()
-    results = []
-    for movie in movies:
-        tokenized_query = tokenize_text(query)
-        tokenized_title = tokenize_text(movie["title"])
-        if has_matching_token(tokenized_query, tokenized_title):
-            results.append(movie)
-            if len(results) >= limit:
-                break
+    idx = InvertedIndex()
+    idx.load()
+    tokenized_query = tokenize_text(query)
+
+    seen, results = set(), []
+    for token in tokenized_query:
+        matching_doc_ids = idx.get_documents(token)
+        for doc_id in matching_doc_ids:
+            if doc_id in seen:
+                continue
+            seen.add(doc_id)
+            results.append(idx.docmap[doc_id])
+        if len(results) >= limit:
+            break
+
     return results
 
 
-def build_command():
+def build_command() -> None:
     inv_idx = InvertedIndex()
     inv_idx.build()
     inv_idx.save()
-    docs = inv_idx.get_documents("merida")
-    print(
-        f"First document for token 'merida' = {docs[0]}")
-
-
-def has_matching_token(query_tokens: list[str], title_tokens: list[str]):
-    for query_token in query_tokens:
-        for title_token in title_tokens:
-            if query_token in title_token:
-                return True
-
-    return False
 
 
 def preprocess_text(text: str) -> str:
