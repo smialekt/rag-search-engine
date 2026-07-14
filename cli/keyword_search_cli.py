@@ -1,8 +1,5 @@
 import argparse
-import json
-from pathlib import Path
-
-from lib.keyword_search import search_command
+from lib.keyword_search import build_command, search_command
 
 
 def main() -> None:
@@ -14,6 +11,9 @@ def main() -> None:
         "search", help="Search movies using keywords")
     search_parser.add_argument("query", type=str, help="Search query")
 
+    subparsers.add_parser(
+        "build", help="Build movie index and docmap")
+
     args = parser.parse_args()
 
     match args.command:
@@ -22,7 +22,10 @@ def main() -> None:
             results = search_command(args.query)
             for i, res in enumerate(results, 1):
                 print(f"{i}. {res['title']}")
-
+        case "build":
+            print("Building inverted index...")
+            build_command()
+            print("Inverted index build successfully.")
         case _:
             parser.print_help()
 

@@ -5,6 +5,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_PATH = PROJECT_ROOT / "data"
+CACHE_PATH = PROJECT_ROOT / "cache"
 MOVIES_PATH = DATA_PATH / "movies.json"
 STOPWORDS_PATH = DATA_PATH / "stopwords.txt"
 
