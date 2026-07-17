@@ -1,5 +1,5 @@
 import argparse
-from lib.keyword_search import build_command, search_command
+from lib.keyword_search import build_command, search_command, tf_command, idf_command, tf_idf_command
 
 
 def main() -> None:
@@ -14,6 +14,26 @@ def main() -> None:
     subparsers.add_parser(
         "build", help="Build movie index and docmap")
 
+    tf_parser = subparsers.add_parser(
+        "tf", help="Get requested token occurences")
+    tf_parser.add_argument(
+        "doc_id", type=int, help="Document id for term lookup")
+    tf_parser.add_argument(
+        "term", type=str, help="Term to get number of occurences")
+
+    idf_parser = subparsers.add_parser(
+        "idf", help="Get inverted document frequency score for term"
+    )
+    idf_parser.add_argument("term", help="Term to base idf score on")
+
+    tf_idf_parser = subparsers.add_parser(
+        "tfidf", help="Get tf-idf score"
+    )
+    tf_idf_parser.add_argument(
+        "doc_id", type=int, help="Document id for term lookup")
+    tf_idf_parser.add_argument(
+        "term", type=str, help="Term to get tf-idf score")
+
     args = parser.parse_args()
 
     match args.command:
@@ -26,6 +46,17 @@ def main() -> None:
             print("Building inverted index...")
             build_command()
             print("Inverted index build successfully.")
+        case "tf":
+            print(
+                f"Number of occurences for {args.term} in doc {args.doc_id}:")
+            tf_command(args.doc_id, args.term)
+        case "idf":
+            idf = idf_command(args.term)
+            print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
+        case "tfidf":
+            tf_idf = tf_idf_command(args.doc_id, args.term)
+            print(
+                f"TF-IDF score of '{args.term}' in document '{args.doc_id}': {tf_idf:.2f}")
         case _:
             parser.print_help()
 
