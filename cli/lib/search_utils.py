@@ -9,7 +9,10 @@ CACHE_PATH = PROJECT_ROOT / "cache"
 MOVIES_PATH = DATA_PATH / "movies.json"
 STOPWORDS_PATH = DATA_PATH / "stopwords.txt"
 
+
 DEFAULT_SEARCH_LIMIT = 200
+BM25_K1 = 1.5
+BM25_B = 0.75
 
 
 class Movie(TypedDict):
