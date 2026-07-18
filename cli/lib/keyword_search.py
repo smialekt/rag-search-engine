@@ -58,6 +58,17 @@ class InvertedIndex():
         with open(self.term_frequencies_path, "rb") as f:
             self.term_frequencies = pickle.load(f)
 
+    def get_bm25_idf(self, token: str) -> float:
+        n_doc = len(self.docmap)
+        n_term_match = len(self.index[token])
+        return math.log((n_doc - n_term_match + 0.5) / (n_term_match + 0.5) + 1)
+
+
+def bm25_idf_command(term: str):
+    idx = InvertedIndex()
+    idx.load()
+    return idx.get_bm25_idf(tokenize_term(term))
+
 
 def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[Movie]:
     idx = InvertedIndex()
